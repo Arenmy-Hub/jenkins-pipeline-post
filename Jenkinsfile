@@ -8,24 +8,26 @@ pipeline {
                 sh 'mkdir -p ./tomcat-web/ROOT'
             }
         }
-        stage('Copy the web application to ROOT') {
+        stage('Prepare ROOT application files') {
             steps {
-                echo 'Copying web application files...'             
+                echo 'Preparing web application files...'             
                 sh 'cp -r shopping/* ./tomcat-web/ROOT/'
                 sh 'cp -r shopping/pages/* ./tomcat-web/ROOT/ || true'
-                sh 'echo "<% response.sendRedirect(\\"welcome.jsp\\"); %>" > ./tomcat-web/ROOT/index.jsp'
+                sh "echo '<% response.sendRedirect(\"welcome.jsp\"); %>' > ./tomcat-web/ROOT/index.jsp"
             }
         }
-        stage('Drop the Apache Tomcat Docker container') {
+        stage('Recreate Tomcat Container') {
             steps {
-                echo 'Dropping the existing container...'
+                echo 'Recreating container...'
                 sh 'docker rm -f tomcat1 || true'
+                sh 'docker run -dit --name tomcat1 -p 9090:8080 tomcat:9.0'
             }
         }
-        stage('Create and Start the Tomcat container') {
+        stage('Deploy files to Tomcat Container') {
             steps {
-                echo 'Creating container with mounted webapp...'
-                sh 'docker run -dit --name tomcat1 -p 9090:8080 -v "${WORKSPACE}/tomcat-web":/usr/local/tomcat/webapps tomcat:9.0'
+                echo 'Deploying ROOT application into running container...'
+                // Copia la carpeta ROOT directamente dentro del contenedor
+                sh 'docker cp ./tomcat-web/ROOT tomcat1:/usr/local/tomcat/webapps/'
             }
         }
     }
