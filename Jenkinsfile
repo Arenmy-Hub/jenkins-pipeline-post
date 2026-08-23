@@ -2,17 +2,18 @@ pipeline {
     agent any
    
     stages {
-        stage('Create directory for the WEB Application') {
+        stage('Create directory for ROOT Application') {
             steps {
                 sh 'rm -rf ./tomcat-web'
-                sh 'mkdir -p ./tomcat-web/shopping'
+                sh 'mkdir -p ./tomcat-web/ROOT'
             }
         }
-        stage('Copy the web application to the workspace directory') {
+        stage('Copy the web application to ROOT') {
             steps {
                 echo 'Copying web application files...'             
-                sh 'cp -r shopping/* ./tomcat-web/shopping/'
-                sh 'cp -r shopping/pages/* ./tomcat-web/shopping/ || true'
+                sh 'cp -r shopping/* ./tomcat-web/ROOT/'
+                sh 'cp -r shopping/pages/* ./tomcat-web/ROOT/ || true'
+                sh 'echo "<% response.sendRedirect(\\"welcome.jsp\\"); %>" > ./tomcat-web/ROOT/index.jsp'
             }
         }
         stage('Drop the Apache Tomcat Docker container') {
