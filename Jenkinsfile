@@ -4,7 +4,6 @@ pipeline {
     stages {
         stage('Create directory for the WEB Application') {
             steps {
-                // Usamos el directorio de trabajo de Jenkins
                 sh 'rm -rf ./tomcat-web'
                 sh 'mkdir -p ./tomcat-web'
             }
@@ -18,7 +17,6 @@ pipeline {
         stage('Create the Tomcat container') {
             steps {
                 echo 'Creating the container...'
-                // Usamos ${WORKSPACE} para que Docker encuentre la ruta correcta
                 sh 'docker run -dit --name tomcat1 -p 9090:8080 -v "${WORKSPACE}/tomcat-web":/usr/local/tomcat/webapps tomcat:9.0'
             }
         }
@@ -27,7 +25,10 @@ pipeline {
                 echo 'Creating the shopping folder in the container'
                 sh 'mkdir -p ./tomcat-web/shopping'
                 echo 'Copying web application...'             
+                // Copia la estructura Java (WEB-INF, META-INF) y los recursos
                 sh 'cp -r shopping/* ./tomcat-web/shopping/'
+                // Si la vista principal está dentro de pages/, mueve su contenido a la raíz de shopping
+                sh 'cp -r shopping/pages/* ./tomcat-web/shopping/ || true'
             }
         }
     }
