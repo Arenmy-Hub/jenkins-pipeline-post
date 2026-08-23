@@ -5,40 +5,36 @@ pipeline {
         stage('Create directory for the WEB Application') {
             steps {
                 sh 'rm -rf ./tomcat-web'
-                sh 'mkdir -p ./tomcat-web'
+                sh 'mkdir -p ./tomcat-web/shopping'
+            }
+        }
+        stage('Copy the web application to the workspace directory') {
+            steps {
+                echo 'Copying web application files...'             
+                sh 'cp -r shopping/* ./tomcat-web/shopping/'
+                sh 'cp -r shopping/pages/* ./tomcat-web/shopping/ || true'
             }
         }
         stage('Drop the Apache Tomcat Docker container') {
             steps {
-                echo 'Droping the container...'
+                echo 'Dropping the existing container...'
                 sh 'docker rm -f tomcat1 || true'
             }
         }
-        stage('Create the Tomcat container') {
+        stage('Create and Start the Tomcat container') {
             steps {
-                echo 'Creating the container...'
+                echo 'Creating container with mounted webapp...'
                 sh 'docker run -dit --name tomcat1 -p 9090:8080 -v "${WORKSPACE}/tomcat-web":/usr/local/tomcat/webapps tomcat:9.0'
-            }
-        }
-        stage('Copy the web application to the container directory') {
-            steps {
-                echo 'Creating the shopping folder in the container'
-                sh 'mkdir -p ./tomcat-web/shopping'
-                echo 'Copying web application...'             
-                // Copia la estructura Java (WEB-INF, META-INF) y los recursos
-                sh 'cp -r shopping/* ./tomcat-web/shopping/'
-                // Si la vista principal está dentro de pages/, mueve su contenido a la raíz de shopping
-                sh 'cp -r shopping/pages/* ./tomcat-web/shopping/ || true'
             }
         }
     }
 
     post {
         success {
-            echo 'the deployment has worked'
+            echo 'The deployment has worked successfully.'
         }
         failure {
-            echo 'An error has ocurred'
+            echo 'An error has occurred during deployment.'
         }
     }
 }
